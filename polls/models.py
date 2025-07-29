@@ -1,52 +1,33 @@
-
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 
-class User(AbstractUser):
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+User = get_user_model()
 
 class Poll(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    pub_date = models.DateTimeField()
-    end_date = models.DateTimeField(null=True, blank=True)
-    allow_multiple_votes = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='polls')
+    question = models.CharField(max_length=255)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_polls')
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.question
 
 class Choice(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='choices')
-    choice_text = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
+    text = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.text
 
 class Vote(models.Model):
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, db_index=True)
     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
-    session_id = models.CharField(max_length=255, blank=True, null=True)
-    ip_address = models.CharField(max_length=45, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     voted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = (('poll', 'user'),)
+        unique_together = (('poll', 'user'),)  # One vote per user per poll
 
-class GuestVote(models.Model):
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
-    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
-    ip_address = models.CharField(max_length=45)
-    session_id = models.CharField(max_length=255)
-    voted_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = (('poll', 'ip_address', 'session_id'),)
-
-class PollView(models.Model):
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
-    ip_address = models.CharField(max_length=45, blank=True, null=True)
-    session_id = models.CharField(max_length=255, blank=True, null=True)
-    viewed_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.user} voted {self.choice} on {self.poll}"
