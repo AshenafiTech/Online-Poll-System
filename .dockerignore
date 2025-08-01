@@ -4,7 +4,6 @@ __pycache__/
 *.pyd
 *.db
 *.sqlite3
-.env
 .env.*
 *.log
 staticfiles/
@@ -17,3 +16,4 @@ media/
 *.egg-info/
 build/
 dist/
+!entrypoint.sh

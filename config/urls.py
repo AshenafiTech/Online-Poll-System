@@ -18,9 +18,20 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from polls.views_home import home
+from django.http import JsonResponse
+from django.conf import settings
+from django.conf.urls.static import static
+
+def health_check(request):
+    return JsonResponse({'status': 'healthy'})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
     path('api/', include('polls.api_urls')),
+    path('health/', health_check, name='health'),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

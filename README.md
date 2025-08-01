@@ -1,141 +1,144 @@
+# Online Poll System
 
-# Online Poll System Backend
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![Django](https://img.shields.io/badge/Django-4.0+-green.svg)](https://djangoproject.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)](https://postgresql.org)
 
-> **ProDev BE Case Study: Building a Backend for an Online Poll System**
+A scalable backend API for creating and managing online polls with real-time voting and results.
 
-## Real-World Application
-This project simulates backend development for applications requiring real-time data processing. Developers gain experience with:
-- Building scalable APIs for real-time voting systems
-- Optimizing database schemas for frequent operations
-- Documenting and deploying APIs for public access
+## Features
 
----
+- **Poll Management**: Create polls with multiple options and expiry dates
+- **Voting System**: Secure voting with duplicate prevention
+- **Real-time Results**: Efficient vote counting and result computation
+- **API Documentation**: Interactive Swagger/OpenAPI documentation
+- **Database Optimization**: Optimized PostgreSQL schemas for scalability
 
-## Overview
-This case study focuses on creating a backend for an online poll system. The backend provides APIs for poll creation, voting, and real-time result computation. The project emphasizes efficient database design and detailed API documentation.
+## Tech Stack
 
----
+- **Backend**: Django REST Framework
+- **Database**: PostgreSQL
+- **Documentation**: Swagger/OpenAPI
+- **Deployment**: Docker support
 
-## Project Goals
-The primary objectives of the poll system backend are:
-- **API Development:** Build APIs for creating polls, voting, and fetching results
-- **Database Efficiency:** Design schemas optimized for real-time result computation
-- **Documentation:** Provide detailed API documentation using Swagger
+## Quick Start
 
----
+### Prerequisites
 
-## Technologies Used
-- **Django:** High-level Python framework for rapid development
-- **PostgreSQL:** Relational database for poll and vote storage
-- **Swagger:** For API documentation
+- Python 3.8+
+- PostgreSQL 13+
+- pip
 
----
+### Installation
 
-## Key Features
-1. **Poll Management**
-   - APIs to create polls with multiple options
-   - Include metadata such as creation date and expiry
-2. **Voting System**
-   - APIs for users to cast votes
-   - Implement validations to prevent duplicate voting
-3. **Result Computation**
-   - Real-time calculation of vote counts for each option
-   - Efficient query design for scalability
-4. **API Documentation**
-   - Use Swagger to document all endpoints
-   - Host documentation at `/api/docs` for easy access
-
----
-
-## Implementation Process
-
-### Git Commit Workflow
-- **Initial Setup:**
-  - `feat: set up Flask project with PostgreSQL`
-- **Feature Development:**
-  - `feat: implement poll creation and voting APIs`
-  - `feat: add results computation API`
-- **Optimization:**
-  - `perf: optimize vote counting queries`
-- **Documentation:**
-  - `feat: integrate Swagger documentation`
-  - `docs: update README with API usage`
-
----
-
-## Setup Instructions
-
-1. **Clone the repository:**
+1. Clone the repository:
    ```bash
    git clone https://github.com/AshenafiTech/Online-Poll-System.git
    cd Online-Poll-System
    ```
-2. **Install dependencies:**
+
+2. Create virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. **Configure the database:**
-   - Update your PostgreSQL credentials in the Django settings file.
-4. **Apply migrations:**
+
+4. Configure database:
+   - Update PostgreSQL credentials in `settings.py`
+   - Or set environment variables:
+     ```bash
+     export DB_NAME=your_db_name
+     export DB_USER=your_db_user
+     export DB_PASSWORD=your_db_password
+     export DB_HOST=localhost
+     export DB_PORT=5432
+     ```
+
+5. Run migrations:
    ```bash
    python manage.py migrate
    ```
-5. **Run the server:**
+
+6. Create superuser (optional):
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+7. Start development server:
    ```bash
    python manage.py runserver
    ```
-6. **Access Swagger API docs:**
-   - Visit [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
 
----
+8. Access the API:
+   - API Base URL: http://localhost:8000/api/
+   - Swagger Documentation: http://localhost:8000/api/docs/
+   - Admin Panel: http://localhost:8000/admin/
 
-## Usage Examples
+## API Usage
 
 ### Create a Poll
-```http
-POST /api/polls/
-{
-  "question": "Your favorite programming language?",
-  "options": ["Python", "JavaScript", "Go", "Rust"],
-  "expiry": "2025-12-31T23:59:59Z"
-}
+```bash
+curl -X POST http://localhost:8000/api/polls/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Your favorite programming language?",
+    "options": ["Python", "JavaScript", "Go", "Rust"],
+    "expiry": "2025-12-31T23:59:59Z"
+  }'
 ```
 
 ### Vote on a Poll
-```http
-POST /api/polls/{poll_id}/vote/
-{
-  "option_id": 2
-}
+```bash
+curl -X POST http://localhost:8000/api/polls/{poll_id}/vote/ \
+  -H "Content-Type: application/json" \
+  -d '{"option_id": 2}'
 ```
 
 ### Get Poll Results
-```http
-GET /api/polls/{poll_id}/results/
+```bash
+curl http://localhost:8000/api/polls/{poll_id}/results/
 ```
 
----
+## Docker Deployment
 
-## Submission Details
-- **Deployment:** Host the API and Swagger documentation for public access.
+1. Build and run with Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
 
----
+2. Access the application:
+   - API: http://localhost:8000/api/
+   - Documentation: http://localhost:8000/api/docs/
 
-## Evaluation Criteria
-1. **Functionality**
-   - Polls and options are created and stored accurately
-   - Voting works without duplication errors
-2. **Code Quality**
-   - Code adheres to Django best practices and is modular
-   - PostgreSQL models are efficient and normalized
-3. **Performance**
-   - Vote counting queries are optimized for scalability
-   - Real-time results are computed efficiently
-4. **Documentation**
-   - Swagger documentation is detailed and accessible
-   - README includes setup instructions and usage examples
+## Project Structure
 
----
+```
+Online-Poll-System/
+├── polls/              # Main Django app
+├── config/             # Django settings
+├── requirements.txt    # Python dependencies
+├── docker-compose.yml  # Docker configuration
+├── Dockerfile         # Docker image
+└── manage.py          # Django management script
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
-This project is for educational purposes.
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+If you have any questions or issues, please open an issue on GitHub.
