@@ -1,7 +1,7 @@
 # Python base image
 FROM python:3.11-slim
 
-# Set environment variables
+# Environment settings
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y build-essential libpq-dev && \
+    apt-get install -y build-essential libpq-dev netcat-openbsd curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -20,11 +20,11 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copy project files
 COPY . /app/
 
-# Collect static files (optional, for production)
-RUN python manage.py collectstatic --noinput || true
+# Copy and set permissions for entrypoint
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-# Expose port (default Django runserver)
 EXPOSE 8000
 
-# Default command
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
