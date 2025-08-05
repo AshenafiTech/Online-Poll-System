@@ -26,7 +26,7 @@ class PollViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         method='post',
-        operation_description="Vote or change your vote for a poll.",
+        operation_description="Vote or change your vote for a poll. Atomic and race-condition safe.",
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=['choice'],
@@ -40,6 +40,7 @@ class PollViewSet(viewsets.ModelViewSet):
     )
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def vote(self, request, pk=None):
+        from django.db import transaction
         poll = self.get_object()
         choice_id = request.data.get('choice')
         if not choice_id:
@@ -55,27 +56,28 @@ class PollViewSet(viewsets.ModelViewSet):
         if not poll.is_active or (poll.expires_at and poll.expires_at < now):
             return Response({'detail': 'Voting is closed for this poll.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        vote, created = Vote.objects.get_or_create(poll=poll, user=request.user, defaults={'choice': choice})
-        if not created:
-            # Allow changing vote before poll expiration
-            vote.choice = choice
-            vote.save()
-            return Response({'detail': 'Your vote has been updated.'}, status=status.HTTP_200_OK)
+        with transaction.atomic():
+            vote, created = Vote.objects.select_for_update().get_or_create(
+                poll=poll, user=request.user, defaults={'choice': choice}
+            )
+            if not created:
+                vote.choice = choice
+                vote.save()
+                return Response({'detail': 'Your vote has been updated.'}, status=status.HTTP_200_OK)
         return Response({'detail': 'Vote recorded.'}, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         method='get',
-        operation_description="Get poll results (vote counts for each choice).",
+        operation_description="Get poll results (vote counts for each choice). Optimized with annotate.",
         responses={200: openapi.Response('Poll results')},
         tags=['Polls', 'Results']
     )
     @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
     def results(self, request, pk=None):
+        from django.db.models import Count
         poll = self.get_object()
-        results = []
-        for choice in poll.choices.all():
-            count = Vote.objects.filter(poll=poll, choice=choice).count()
-            results.append({'choice': choice.text, 'votes': count})
+        choices = poll.choices.annotate(votes=Count('vote'))
+        results = [{'choice': c.text, 'votes': c.votes} for c in choices]
         return Response({'question': poll.question, 'results': results})
 
 
