@@ -2,33 +2,34 @@ name: Django CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feat/bug-fixes ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, feat/bug-fixes ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: poll_db
+          POSTGRES_USER: poll_user
+          POSTGRES_PASSWORD: poll_pass
         ports:
           - 5432:5432
         options: >-
           --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     env:
-      DB_NAME: test_db
-      DB_USER: test_user
-      DB_PASSWORD: test_pass
+      DB_NAME: poll_db
+      DB_USER: poll_user
+      DB_PASSWORD: poll_pass
       DB_HOST: localhost
       DB_PORT: 5432
       SECRET_KEY: testsecretkey
       DEBUG: 'True'
       ALLOWED_HOSTS: localhost,127.0.0.1
+      DJANGO_ENV: test
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
