@@ -9,7 +9,8 @@ class Poll(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
     allow_multiple_votes = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_polls')
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='created_polls')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -19,7 +20,8 @@ class Poll(models.Model):
 
 
 class Option(models.Model):
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='options')
+    poll = models.ForeignKey(
+        Poll, on_delete=models.CASCADE, related_name='options')
     option_text = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -31,7 +33,8 @@ class Option(models.Model):
 class Vote(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     selected_option = models.ForeignKey(Option, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True)
     session_id = models.CharField(max_length=255, null=True, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -68,7 +71,8 @@ class GuestVote(models.Model):
 
 class PollView(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     session_id = models.CharField(max_length=255, null=True, blank=True)
     viewed_at = models.DateTimeField(auto_now_add=True)

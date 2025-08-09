@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class UserAPITests(APITestCase):
     def setUp(self):
         self.client = APIClient()
@@ -20,9 +21,11 @@ class UserAPITests(APITestCase):
             'email': self.email
         }
         response = self.client.post(url, data, format='json')
-        self.assertIn(response.status_code, [201, 400])  # 400 if user exists or invalid
+        # 400 if user exists or invalid
+        self.assertIn(response.status_code, [201, 400])
         if response.status_code == 201:
-            self.assertTrue(User.objects.filter(username=self.username).exists())
+            self.assertTrue(User.objects.filter(
+                username=self.username).exists())
 
     def test_user_profile_requires_auth(self):
         url = reverse('user-profile')
@@ -30,7 +33,8 @@ class UserAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_user_profile_authenticated(self):
-        user = User.objects.create_user(username='profileuser', password='profilepass', email='profile@example.com')
+        user = User.objects.create_user(
+            username='profileuser', password='profilepass', email='profile@example.com')
         self.client.force_authenticate(user=user)
         url = reverse('user-profile')
         response = self.client.get(url)

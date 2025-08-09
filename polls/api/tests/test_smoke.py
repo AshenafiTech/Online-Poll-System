@@ -2,11 +2,13 @@ from django.urls import reverse
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 
+
 class EndpointSmokeTest(APITestCase):
     """
     Smoke test for all main API endpoints to ensure they respond (200/401/403/405/404).
     Add or adjust endpoints as your API evolves.
     """
+
     def setUp(self):
         self.client = APIClient()
 
@@ -43,7 +45,8 @@ class EndpointSmokeTest(APITestCase):
 
     def test_user_registration(self):
         url = reverse('user-register')
-        data = {'username': 'smoketest', 'password': 'testpass123', 'email': 'smoke@example.com'}
+        data = {'username': 'smoketest', 'password': 'testpass123',
+                'email': 'smoke@example.com'}
         response = self.client.post(url, data, format='json')
         self.assertIn(response.status_code, [201, 400])
 
