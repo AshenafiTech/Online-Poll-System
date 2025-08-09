@@ -5,10 +5,11 @@ from polls.api.serializers.user import UserProfileSerializer
 
 from drf_yasg.utils import swagger_auto_schema
 
+
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     User Profile
-    
+
     View and update your user profile information. Authentication required.
     """
     serializer_class = UserProfileSerializer

@@ -9,11 +9,12 @@ from django.views.decorators.csrf import csrf_exempt
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class UserRegistrationView(generics.CreateAPIView):
     """
     User Registration
-    
+
     Register a new user account. No authentication required.
     """
     queryset = User.objects.all()

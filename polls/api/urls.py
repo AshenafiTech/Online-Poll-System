@@ -1,3 +1,8 @@
+from drf_yasg.views import get_schema_view
+from .views.user_profile import UserProfileView
+from .views.user_views import UserRegistrationView
+from .views.viewsets import PollViewSet, OptionViewSet, VoteViewSet, GuestVoteViewSet, PollAnalyticsViewSet
+from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from django.urls import path, re_path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -5,6 +10,8 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 # Custom schema views for JWT endpoints
+
+
 class TokenObtainPairViewPatched(TokenObtainPairView):
     @swagger_auto_schema(
         operation_summary="Obtain JWT token pair",
@@ -31,6 +38,7 @@ class TokenObtainPairViewPatched(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
+
 class TokenRefreshViewPatched(TokenRefreshView):
     @swagger_auto_schema(
         operation_summary="Refresh JWT access token",
@@ -55,13 +63,7 @@ class TokenRefreshViewPatched(TokenRefreshView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
-from rest_framework import permissions
 
-from .views.viewsets import PollViewSet, OptionViewSet, VoteViewSet, GuestVoteViewSet, PollAnalyticsViewSet
-from .views.user_views import UserRegistrationView
-from .views.user_profile import UserProfileView
 
 router = DefaultRouter()
 router.register(r'polls', PollViewSet, basename='poll')
@@ -77,4 +79,3 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('', include(router.urls)),
 ]
-

@@ -7,20 +7,22 @@ from polls.api.permissions.permissions import IsPollCreatorOrReadOnly
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+
 class GuestVoteViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Guest Votes
-    
+
     Manage votes from unauthenticated users.
     """
     queryset = GuestVote.objects.select_related('poll', 'selected_option')
     serializer_class = GuestVoteSerializer
     permission_classes = [permissions.AllowAny]
 
+
 class PollAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Poll Analytics
-    
+
     Track poll view statistics and analytics.
     """
     @swagger_auto_schema(auto_schema=None, tags=["Poll Analytics"])
@@ -30,6 +32,7 @@ class PollAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PollView.objects.select_related('poll', 'user')
     serializer_class = PollViewSerializer
     permission_classes = [permissions.AllowAny]
+
 
 class PollViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
@@ -143,7 +146,7 @@ class PollViewSet(viewsets.ModelViewSet):
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
     permission_classes = [IsPollCreatorOrReadOnly]
-    
+
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.IsAuthenticated()]
@@ -164,7 +167,7 @@ class PollViewSet(viewsets.ModelViewSet):
             required=['option'],
             properties={
                 'option': openapi.Schema(
-                    type=openapi.TYPE_INTEGER, 
+                    type=openapi.TYPE_INTEGER,
                     description='ID of the option to vote for',
                     example=1
                 ),
@@ -201,13 +204,15 @@ class PollViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Voting is closed for this poll.'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user if request.user.is_authenticated else None
-        session_id = request.session.session_key or request.COOKIES.get('sessionid') or request.data.get('session_id')
+        session_id = request.session.session_key or request.COOKIES.get(
+            'sessionid') or request.data.get('session_id')
         ip_address = request.META.get('REMOTE_ADDR')
 
         if user:
             with transaction.atomic():
                 vote, created = Vote.objects.select_for_update().get_or_create(
-                    poll=poll, user=user, defaults={'selected_option': option, 'session_id': session_id, 'ip_address': ip_address}
+                    poll=poll, user=user, defaults={
+                        'selected_option': option, 'session_id': session_id, 'ip_address': ip_address}
                 )
                 if not created:
                     vote.selected_option = option
@@ -219,7 +224,8 @@ class PollViewSet(viewsets.ModelViewSet):
                 return Response({'detail': 'Session ID and IP address are required for guest voting.'}, status=status.HTTP_400_BAD_REQUEST)
             with transaction.atomic():
                 guest_vote, created = GuestVote.objects.select_for_update().get_or_create(
-                    poll=poll, session_id=session_id, ip_address=ip_address, defaults={'selected_option': option}
+                    poll=poll, session_id=session_id, ip_address=ip_address, defaults={
+                        'selected_option': option}
                 )
                 if not created:
                     guest_vote.selected_option = option
@@ -256,13 +262,13 @@ class PollViewSet(viewsets.ModelViewSet):
         """
         from django.db.models import Count, Q
         poll = self.get_object()
-        
+
         # Optimized single query with aggregation
         results = poll.options.annotate(
             vote_count=Count('vote', distinct=True),
             guest_vote_count=Count('guestvote', distinct=True)
         ).values('option_text', 'vote_count', 'guest_vote_count')
-        
+
         formatted_results = [
             {
                 'option': result['option_text'],
@@ -270,8 +276,9 @@ class PollViewSet(viewsets.ModelViewSet):
             }
             for result in results
         ]
-        
+
         return Response({'question': poll.question, 'results': formatted_results})
+
 
 class OptionViewSet(viewsets.ModelViewSet):
     """
@@ -283,6 +290,7 @@ class OptionViewSet(viewsets.ModelViewSet):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
 
 class VoteViewSet(viewsets.ModelViewSet):
     """

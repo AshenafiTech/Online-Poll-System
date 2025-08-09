@@ -17,45 +17,56 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Poll',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('question', models.CharField(max_length=255)),
                 ('expires_at', models.DateTimeField(blank=True, null=True)),
                 ('allow_multiple_votes', models.BooleanField(default=False)),
                 ('is_active', models.BooleanField(default=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_polls', to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='created_polls', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
             name='Option',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('option_text', models.CharField(max_length=255)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('poll', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='options', to='polls.poll')),
+                ('poll', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='options', to='polls.poll')),
             ],
         ),
         migrations.CreateModel(
             name='PollView',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
-                ('session_id', models.CharField(blank=True, max_length=255, null=True)),
+                ('session_id', models.CharField(
+                    blank=True, max_length=255, null=True)),
                 ('viewed_at', models.DateTimeField(auto_now_add=True)),
-                ('poll', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='polls.poll')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                ('poll', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='polls.poll')),
+                ('user', models.ForeignKey(blank=True, null=True,
+                 on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
             name='GuestVote',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('ip_address', models.GenericIPAddressField()),
                 ('session_id', models.CharField(max_length=255)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('selected_option', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='polls.option')),
-                ('poll', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='polls.poll')),
+                ('selected_option', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='polls.option')),
+                ('poll', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='polls.poll')),
             ],
             options={
                 'unique_together': {('poll', 'ip_address', 'session_id')},
@@ -64,13 +75,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Vote',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('session_id', models.CharField(blank=True, max_length=255, null=True)),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('session_id', models.CharField(
+                    blank=True, max_length=255, null=True)),
                 ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('poll', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='polls.poll')),
-                ('selected_option', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='polls.option')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('poll', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='polls.poll')),
+                ('selected_option', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='polls.option')),
+                ('user', models.ForeignKey(blank=True, null=True,
+                 on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'indexes': [models.Index(fields=['poll', 'user'], name='polls_vote_poll_id_cfe401_idx'), models.Index(fields=['poll', 'selected_option'], name='polls_vote_poll_id_876ad6_idx'), models.Index(fields=['session_id', 'ip_address'], name='polls_vote_session_5f3e2d_idx')],

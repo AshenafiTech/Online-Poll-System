@@ -14,102 +14,106 @@ This document describes the normalized database schema for the Poll System appli
 
 ## Tables and Descriptions
 
-### 1. `users`
 
-Stores information about registered users.
+### 1. `User` (Django built-in)
+
+Stores information about registered users. Uses Django's built-in user model, which includes:
 
 | Field         | Type      | Description                             |
 |---------------|-----------|-----------------------------------------|
 | `id`          | Integer   | Primary Key                             |
 | `username`    | Varchar   | Unique username                         |
 | `email`       | Varchar   | Unique email address                    |
-| `password_hash` | Varchar | Hashed password                         |
+| `password`    | Varchar   | Hashed password                         |
 | `is_active`   | Boolean   | Whether the user account is active      |
-| `created_at`  | Timestamp | Time of registration                    |
-| `updated_at`  | Timestamp | Time of last profile update             |
+| `date_joined` | Timestamp | Time of registration                    |
+| ...           | ...       | Other standard Django user fields       |
 
 ---
 
-### 2. `polls`
+
+### 2. `Poll`
 
 Represents individual polls/questions created by users.
 
 | Field               | Type      | Description                                    |
 |---------------------|-----------|------------------------------------------------|
 | `id`                | Integer   | Primary Key                                    |
-| `title`             | Varchar   | Poll title                                     |
-| `description`       | Text      | Optional description                           |
-| `pub_date`          | Timestamp | Publication time                               |
-| `end_date`          | Timestamp | Expiration date (if any)                       |
-| `allow_multiple_votes` | Boolean | Whether multiple votes are allowed            |
-| `is_active`         | Boolean   | Whether the poll is visible and open           |
-| `created_by`        | Integer   | FK → `users.id` (poll author)                 |
+| `question`          | Varchar   | Poll question text                             |
+| `expires_at`        | Timestamp | Expiration date/time (nullable)                |
+| `allow_multiple_votes` | Boolean | Whether multiple votes are allowed (default: False) |
+| `is_active`         | Boolean   | Whether the poll is open for voting            |
+| `created_by`        | Integer   | FK → `User.id` (poll author)                   |
 | `created_at`        | Timestamp | Time of creation                               |
 | `updated_at`        | Timestamp | Time of last update                            |
 
 ---
 
-### 3. `choices`
+
+### 3. `Option`
 
 Available answer options for each poll.
 
 | Field        | Type      | Description                        |
 |--------------|-----------|------------------------------------|
 | `id`         | Integer   | Primary Key                        |
-| `poll_id`    | Integer   | FK → `polls.id`                    |
-| `choice_text`| Varchar   | Text of the choice                 |
-| `created_at` | Timestamp | Time of choice creation            |
+| `poll_id`    | Integer   | FK → `Poll.id`                     |
+| `option_text`| Varchar   | Text of the option                 |
+| `created_at` | Timestamp | Time of option creation            |
 
 ---
 
-### 4. `votes`
 
-Stores authenticated or anonymous votes cast by users.
+### 4. `Vote`
 
-| Field        | Type      | Description                                 |
-|--------------|-----------|---------------------------------------------|
-| `id`         | Integer   | Primary Key                                 |
-| `poll_id`    | Integer   | FK → `polls.id`                             |
-| `choice_id`  | Integer   | FK → `choices.id`                           |
-| `user_id`    | Integer   | FK → `users.id` (nullable for guests)       |
-| `session_id` | Varchar   | Used for guest identification (optional)    |
-| `ip_address` | Varchar   | Tracks guest IP                             |
-| `voted_at`   | Timestamp | Time the vote was cast                      |
+Stores votes cast by users (authenticated or guest).
+
+| Field           | Type      | Description                                 |
+|-----------------|-----------|---------------------------------------------|
+| `id`            | Integer   | Primary Key                                 |
+| `poll_id`       | Integer   | FK → `Poll.id`                              |
+| `selected_option`| Integer  | FK → `Option.id`                            |
+| `user_id`       | Integer   | FK → `User.id` (nullable for guests)        |
+| `session_id`    | Varchar   | Guest session identifier (nullable)         |
+| `ip_address`    | Varchar   | Guest IP address (nullable)                 |
+| `created_at`    | Timestamp | Time the vote was cast                      |
 
 **Constraints:**
-- Unique vote per `(poll_id, user_id)` if authenticated
-- Guests are tracked via `ip_address` and `session_id`
+- Unique vote per (`poll_id`, `user_id`) for authenticated users
+- Unique vote per (`poll_id`, `session_id`, `ip_address`) for guests
 
 ---
 
-### 5. `guest_votes`
 
-Used when a vote is cast by an unauthenticated user.
+### 5. `GuestVote`
+
+Used for tracking guest votes (if separate from `Vote`).
+
+| Field           | Type      | Description                            |
+|-----------------|-----------|----------------------------------------|
+| `id`            | Integer   | Primary Key                            |
+| `poll_id`       | Integer   | FK → `Poll.id`                         |
+| `selected_option`| Integer  | FK → `Option.id`                       |
+| `ip_address`    | Varchar   | Guest IP address                       |
+| `session_id`    | Varchar   | Guest session identifier               |
+| `created_at`    | Timestamp | Time the vote was cast                 |
+
+**Constraint:** unique vote per (`poll_id`, `ip_address`, `session_id`)
+
+---
+
+
+### 6. `PollView`
+
+Tracks which users or guests have viewed which polls (analytics).
 
 | Field        | Type      | Description                            |
 |--------------|-----------|----------------------------------------|
 | `id`         | Integer   | Primary Key                            |
-| `poll_id`    | Integer   | FK → `polls.id`                        |
-| `choice_id`  | Integer   | FK → `choices.id`                      |
-| `ip_address` | Varchar   | Guest IP address                       |
-| `session_id` | Varchar   | Guest session or browser identifier    |
-| `voted_at`   | Timestamp | Time the vote was cast                 |
-
-**Constraint:** unique vote per guest per poll
-
----
-
-### 6. `poll_views`
-
-Tracks which users or guests have viewed which polls.
-
-| Field        | Type      | Description                            |
-|--------------|-----------|----------------------------------------|
-| `id`         | Integer   | Primary Key                            |
-| `poll_id`    | Integer   | FK → `polls.id`                        |
-| `user_id`    | Integer   | FK → `users.id` (nullable)             |
-| `ip_address` | Varchar   | Viewer’s IP address                    |
-| `session_id` | Varchar   | Guest/session identifier               |
+| `poll_id`    | Integer   | FK → `Poll.id`                         |
+| `user_id`    | Integer   | FK → `User.id` (nullable)              |
+| `ip_address` | Varchar   | Viewer’s IP address (nullable)         |
+| `session_id` | Varchar   | Guest/session identifier (nullable)    |
 | `viewed_at`  | Timestamp | Time the poll was viewed               |
 
 ---

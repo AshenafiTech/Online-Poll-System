@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 
+
 def home(request):
     return JsonResponse({
         'message': 'Online Poll System API',
