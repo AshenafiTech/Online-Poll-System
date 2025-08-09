@@ -21,6 +21,10 @@ RUN pip install --upgrade pip && pip install -r requirements.txt && pip install 
 # Create non-root user
 RUN useradd -m appuser
 
+
+# Ensure staticfiles directory exists and is owned by appuser
+RUN mkdir -p /app/staticfiles && chown -R appuser:appuser /app/staticfiles
+
 # Copy project files
 COPY . /app/
 

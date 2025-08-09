@@ -154,8 +154,10 @@ Use the access token in the `Authorization` header for protected endpoints:
 | /api/token/                     | POST   | No           | Obtain JWT token             |
 | /api/token/refresh/             | POST   | No           | Refresh JWT token            |
 | /api/polls/                     | POST   | Yes          | Create a poll                |
-| /api/polls/{poll_id}/vote/      | POST   | Yes          | Vote on a poll               |
+| /api/polls/{poll_id}/vote/      | POST   | No           | Vote on a poll (auth or guest) |
 | /api/polls/{poll_id}/results/   | GET    | No           | Get poll results             |
+| /api/guest-votes/               | GET/POST| No           | List or create guest votes   |
+| /api/poll-views/                | GET/POST| No           | List or create poll views    |
 | /api/register/                  | POST   | No           | Register a new user          |
 | /api/profile/                   | GET    | Yes          | Get user profile             |
 
@@ -169,7 +171,7 @@ curl -X POST http://localhost:8000/api/polls/ \
   -d '{
     "question": "Your favorite programming language?",
     "options": ["Python", "JavaScript", "Go", "Rust"],
-    "expiry": "2025-12-31T23:59:59Z"
+    "expires_at": "2025-12-31T23:59:59Z"
   }'
 ```
 Response:
@@ -178,26 +180,44 @@ Response:
   "id": 1,
   "question": "Your favorite programming language?",
   "options": [
-    {"id": 1, "text": "Python"},
-    {"id": 2, "text": "JavaScript"},
-    {"id": 3, "text": "Go"},
-    {"id": 4, "text": "Rust"}
+    {"id": 1, "option_text": "Python"},
+    {"id": 2, "option_text": "JavaScript"},
+    {"id": 3, "option_text": "Go"},
+    {"id": 4, "option_text": "Rust"}
   ],
-  "expiry": "2025-12-31T23:59:59Z"
+  "expires_at": "2025-12-31T23:59:59Z"
 }
 ```
 
-### Vote on a Poll
+
+### Vote on a Poll (Authenticated or Guest)
+
+#### Authenticated User
 ```bash
 curl -X POST http://localhost:8000/api/polls/{poll_id}/vote/ \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <access_token>" \
-  -d '{"option_id": 2}'
+  -d '{"option": 1}'
 ```
 Response:
 ```json
 {
-  "message": "Vote recorded successfully."
+  "detail": "Vote recorded."
+}
+```
+
+#### Guest User
+```bash
+curl -X POST http://localhost:8000/api/polls/{poll_id}/vote/ \
+  -H "Content-Type: application/json" \
+  -H "Cookie: sessionid=guest-session-1" \
+  --header "X-Forwarded-For: 1.2.3.4" \
+  -d '{"option": 1}'
+```
+Response:
+```json
+{
+  "detail": "Vote recorded (guest)."
 }
 ```
 
@@ -220,6 +240,7 @@ Response:
 
 ---
 
+
 ### Error Handling
 
 - If you provide invalid credentials or an expired token, you'll receive:
@@ -229,10 +250,16 @@ Response:
   "code": "token_not_valid"
 }
 ```
-- If you try to vote twice:
+- If you try to vote without required fields:
 ```json
 {
-  "detail": "You have already voted in this poll."
+  "detail": "Option ID is required."
+}
+```
+- If a guest tries to vote without session or IP:
+```json
+{
+  "detail": "Session ID and IP address are required for guest voting."
 }
 ```
 
