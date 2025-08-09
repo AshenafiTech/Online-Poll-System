@@ -1,18 +1,20 @@
 # Online Poll System
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
-[![Django](https://img.shields.io/badge/Django-4.0+-green.svg)](https://djangoproject.com)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue.svg)](https://postgresql.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
+[![Django](https://img.shields.io/badge/Django-5.2+-green.svg)](https://djangoproject.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue.svg)](https://postgresql.org)
 
 A scalable backend API for creating and managing online polls with real-time voting and results.
 
+
 ## Features
 
-- **Poll Management**: Create polls with multiple options and expiry dates
-- **Voting System**: Secure voting with duplicate prevention
-- **Real-time Results**: Efficient vote counting and result computation
-- **API Documentation**: Interactive Swagger/OpenAPI documentation
-- **Database Optimization**: Optimized PostgreSQL schemas for scalability
+- **Poll Management**: Create, update, and manage polls with multiple options and expiry dates.
+- **Voting System**: Secure voting for authenticated and guest users, with duplicate prevention.
+- **Poll Analytics**: Track poll views and analytics via the `/api/poll-views/` endpoint.
+- **Real-time Results**: Efficient vote counting and result computation.
+- **API Documentation**: Interactive Swagger/OpenAPI documentation at `/api/swagger/`.
+- **Database Optimization**: Optimized PostgreSQL schemas for scalability.
 
 ## Tech Stack
 
@@ -33,8 +35,9 @@ You can run the project either locally (with your own Python and PostgreSQL) or 
 
 ### Prerequisites
 
-- Python 3.8+
-- PostgreSQL 13+
+- Python 3.12+
+- Django 5.2+
+- PostgreSQL 16+
 - pip
 
 ### Environment Variables
@@ -111,13 +114,20 @@ cp .env.example .env
 ---
 
 
-## Access the API
+## Accessing the Application & API
 
-- **API Base URL:** http://localhost:8000/api/
-- **Swagger Documentation:** http://localhost:8000/api/swagger/
-- **Admin Panel:** http://localhost:8000/admin/
+- **API Base URL:** [http://localhost:8000/api/](http://localhost:8000/api/)
+- **Swagger Documentation:** [http://localhost:8000/swagger/](http://localhost:8000/swagger/)
+- **ReDoc Documentation:** [http://localhost:8000/redoc/](http://localhost:8000/redoc/)
+- **Admin Panel:** [http://localhost:8000/admin/](http://localhost:8000/admin/)
 
+> These URLs are the same for both local and Docker setups (unless you change the ports).
 
+**Example:**  
+Open [http://localhost:8000/api/](http://localhost:8000/api/) in your browser to see the API root.
+
+**Note:**  
+Most API endpoints require authentication. See the [Authentication](#authentication) section for details on obtaining and using JWT tokens.
 
 ## API Usage
 
@@ -147,19 +157,42 @@ Use the access token in the `Authorization` header for protected endpoints:
 
 ---
 
+
 ### API Endpoints Summary
 
-| Endpoint                        | Method | Auth Required | Description                  |
-|----------------------------------|--------|--------------|------------------------------|
-| /api/token/                     | POST   | No           | Obtain JWT token             |
-| /api/token/refresh/             | POST   | No           | Refresh JWT token            |
-| /api/polls/                     | POST   | Yes          | Create a poll                |
-| /api/polls/{poll_id}/vote/      | POST   | No           | Vote on a poll (auth or guest) |
-| /api/polls/{poll_id}/results/   | GET    | No           | Get poll results             |
-| /api/guest-votes/               | GET/POST| No           | List or create guest votes   |
-| /api/poll-views/                | GET/POST| No           | List or create poll views    |
-| /api/register/                  | POST   | No           | Register a new user          |
-| /api/profile/                   | GET    | Yes          | Get user profile             |
+| Endpoint                        | Method     | Auth Required | Description                                 |
+|----------------------------------|------------|--------------|---------------------------------------------|
+| /api/token/                     | POST       | No           | Obtain JWT token                            |
+| /api/token/refresh/             | POST       | No           | Refresh JWT token                           |
+| /api/polls/                     | GET/POST   | Yes          | List or create a poll                       |
+| /api/polls/{poll_id}/vote/      | POST       | No           | Vote on a poll (auth or guest)              |
+| /api/polls/{poll_id}/results/   | GET        | No           | Get poll results                            |
+| /api/guest-votes/               | GET/POST   | No           | List or create guest votes                  |
+| /api/poll-views/                | GET        | No           | List poll analytics (views/statistics)      |
+| /api/register/                  | POST       | No           | Register a new user                         |
+| /api/profile/                   | GET        | Yes          | Get user profile                            |
+
+## Running Tests
+
+To run tests locally:
+```bash
+python manage.py test
+```
+
+To run tests in Docker:
+```bash
+docker-compose run web python manage.py test
+```
+
+## Troubleshooting
+
+- **Database Connection Issues:** Ensure your `.env` file has the correct database host, user, and password. For local development, you can use SQLite by updating your Django settings.
+- **Missing Dependencies:** Activate your virtual environment and run `pip install -r requirements.txt`.
+- **URL Not Found:** If you add new endpoints, restart the server and check the registered URLs.
+
+## Support & Contact
+
+If you have any questions, issues, or suggestions, please open an issue on GitHub or contact the maintainer via the repository.
 
 ---
 
@@ -278,16 +311,17 @@ To run tests in Docker (if you have a test service configured):
 docker-compose run web python manage.py test
 ```
 
+
 ## Project Structure
 
 ```
 Online-Poll-System/
-├── polls/              # Main Django app
-├── config/             # Django settings
-├── requirements.txt    # Python dependencies
-├── docker-compose.yml  # Docker configuration
-├── Dockerfile         # Docker image
-└── manage.py          # Django management script
+├── polls/           # Django app (polls logic, API, models)
+├── config/          # Django settings and URLs
+├── requirements.txt # Python dependencies
+├── Dockerfile       # Docker image
+├── docker-compose.yml # Docker Compose config
+└── manage.py        # Django management script
 ```
 
 ## Contributing
@@ -302,6 +336,7 @@ Online-Poll-System/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
 
-If you have any questions or issues, please open an issue on GitHub.
+## Support & Contact
+
+If you have any questions, issues, or suggestions, please open an issue on GitHub or contact the maintainer via the repository.
