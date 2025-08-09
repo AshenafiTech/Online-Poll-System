@@ -68,7 +68,7 @@ router.register(r'polls', PollViewSet, basename='poll')
 router.register(r'options', OptionViewSet)
 router.register(r'votes', VoteViewSet)
 router.register(r'guest-votes', GuestVoteViewSet)
-router.register(r'poll-views', PollAnalyticsViewSet)
+router.register(r'pollanalytics', PollAnalyticsViewSet)
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-register'),

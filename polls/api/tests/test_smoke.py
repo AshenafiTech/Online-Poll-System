@@ -37,7 +37,7 @@ class EndpointSmokeTest(APITestCase):
         self.assertIn(response.status_code, [200, 401, 403])
 
     def test_poll_analytics_list(self):
-        url = reverse('pollanalytics-list')
+        url = reverse('pollview-list')
         response = self.client.get(url)
         self.assertIn(response.status_code, [200, 401, 403])
 

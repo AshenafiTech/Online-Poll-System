@@ -110,7 +110,7 @@ class PollAPITests(APITestCase):
         self.assertIn('results', response.data)
 
     def test_poll_analytics_list(self):
-        url = reverse('pollanalytics-list')
+        url = reverse('pollview-list')
         response = self.client.get(url)
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN])
 
