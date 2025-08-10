@@ -8,135 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 
-class GuestVoteViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Guest Votes
-
-    Manage votes from unauthenticated users.
-    """
-    queryset = GuestVote.objects.select_related('poll', 'selected_option')
-    serializer_class = GuestVoteSerializer
-    permission_classes = [permissions.AllowAny]
-
-
-class PollAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Poll Analytics
-
-    Track poll view statistics and analytics.
-    """
-    @swagger_auto_schema(auto_schema=None, tags=["Poll Analytics"])
-    def list(self, request, *args, **kwargs):
-        """List poll analytics data."""
-        return super().list(request, *args, **kwargs)
-    queryset = PollView.objects.select_related('poll', 'user')
-    serializer_class = PollViewSerializer
-    permission_classes = [permissions.AllowAny]
-
-
 class PollViewSet(viewsets.ModelViewSet):
-    @swagger_auto_schema(
-        method='post',
-        operation_summary="Reopen Poll",
-        operation_description=(
-            "Reopen a closed poll. Only the poll creator can perform this action. "
-            "Sets is_active to True.\n\n"
-            "**Permissions:** Only the poll creator can reopen.\n\n"
-            "**Responses:**\n"
-            "- 200: Poll reopened successfully.\n"
-            "- 400: Poll is already open.\n"
-            "- 403: You do not have permission to reopen this poll."
-        ),
-        responses={
-            200: openapi.Response(
-                description='Poll reopened successfully.',
-                examples={
-                    'application/json': {'detail': 'Poll reopened successfully.'}
-                }
-            ),
-            400: openapi.Response(
-                description='Poll is already open.',
-                examples={
-                    'application/json': {'detail': 'Poll is already open.'}
-                }
-            ),
-            403: openapi.Response(
-                description='You do not have permission to reopen this poll.',
-                examples={
-                    'application/json': {'detail': 'You do not have permission to reopen this poll.'}
-                }
-            )
-        },
-        tags=['Polls Management']
-    )
-    @action(detail=True, methods=['post'], permission_classes=[IsPollCreatorOrReadOnly])
-    def reopen(self, request, pk=None):
-        """
-        Reopen a closed poll (reactivate voting).\n\n
-        **Who can use:** Only the poll creator.\n
-        **What it does:** Sets `is_active` to True, allowing users to vote again.\n
-        **Returns:**
-        - 200: Poll reopened successfully.
-        - 400: Poll is already open.
-        - 403: You do not have permission to reopen this poll.
-        """
-        poll = self.get_object()
-        if not request.user.is_authenticated or poll.created_by != request.user:
-            return Response({'detail': 'You do not have permission to reopen this poll.'}, status=status.HTTP_403_FORBIDDEN)
-        if poll.is_active:
-            return Response({'detail': 'Poll is already open.'}, status=status.HTTP_400_BAD_REQUEST)
-        poll.is_active = True
-        poll.save()
-        return Response({'detail': 'Poll reopened successfully.'}, status=status.HTTP_200_OK)
-    """
-    ViewSet for managing polls.
-    - Create, view, update, and delete polls.
-    - Only poll creators can modify or close their polls.
-    - Voting and results endpoints are provided as custom actions.
-    """
-    @swagger_auto_schema(
-        method='post',
-        operation_summary="Close Poll",
-        operation_description=(
-            "Close (deactivate) a poll. Only the poll creator can perform this action. "
-            "Sets is_active to False.\n\n"
-            "**Permissions:** Only the poll creator can close.\n\n"
-            "**Responses:**\n"
-            "- 200: Poll closed successfully.\n"
-            "- 403: You do not have permission to close this poll."
-        ),
-        responses={
-            200: openapi.Response(
-                description='Poll closed successfully.',
-                examples={
-                    'application/json': {'detail': 'Poll closed successfully.'}
-                }
-            ),
-            403: openapi.Response(
-                description='You do not have permission to close this poll.',
-                examples={
-                    'application/json': {'detail': 'You do not have permission to close this poll.'}
-                }
-            )
-        },
-        tags=['Polls Management']
-    )
-    @action(detail=True, methods=['post'], permission_classes=[IsPollCreatorOrReadOnly])
-    def close(self, request, pk=None):
-        """
-        Close a poll (deactivate voting).\n\n
-        **Who can use:** Only the poll creator.\n
-        **What it does:** Sets `is_active` to False, preventing further votes.\n
-        **Returns:**
-        - 200: Poll closed successfully.
-        - 403: You do not have permission to close this poll.
-        """
-        poll = self.get_object()
-        if not request.user.is_authenticated or poll.created_by != request.user:
-            return Response({'detail': 'You do not have permission to close this poll.'}, status=status.HTTP_403_FORBIDDEN)
-        poll.is_active = False
-        poll.save()
-        return Response({'detail': 'Poll closed successfully.'}, status=status.HTTP_200_OK)
     """
     Polls Management
     
@@ -179,7 +51,7 @@ class PollViewSet(viewsets.ModelViewSet):
             400: openapi.Response('Bad request - invalid option or missing data'),
             401: openapi.Response('Authentication required for some polls')
         },
-        tags=['Voting']
+        tags=['Votes']
     )
     @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
     def vote(self, request, pk=None):
@@ -252,7 +124,7 @@ class PollViewSet(viewsets.ModelViewSet):
             ),
             404: openapi.Response('Poll not found')
         },
-        tags=['Results']
+        tags=['Poll Analytics']
     )
     @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
     def results(self, request, pk=None):
@@ -279,13 +151,55 @@ class PollViewSet(viewsets.ModelViewSet):
 
         return Response({'question': poll.question, 'results': formatted_results})
 
+    @swagger_auto_schema(
+        method='post',
+        operation_summary="Close Poll",
+        operation_description="Close (deactivate) a poll. Only the poll creator can perform this action.",
+        responses={
+            200: openapi.Response('Poll closed successfully.'),
+            403: openapi.Response('You do not have permission to close this poll.')
+        },
+        tags=['Polls Management']
+    )
+    @action(detail=True, methods=['post'], permission_classes=[IsPollCreatorOrReadOnly])
+    def close(self, request, pk=None):
+        """Close a poll (deactivate voting)."""
+        poll = self.get_object()
+        if not request.user.is_authenticated or poll.created_by != request.user:
+            return Response({'detail': 'You do not have permission to close this poll.'}, status=status.HTTP_403_FORBIDDEN)
+        poll.is_active = False
+        poll.save()
+        return Response({'detail': 'Poll closed successfully.'}, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        method='post',
+        operation_summary="Reopen Poll",
+        operation_description="Reopen a closed poll. Only the poll creator can perform this action.",
+        responses={
+            200: openapi.Response('Poll reopened successfully.'),
+            400: openapi.Response('Poll is already open.'),
+            403: openapi.Response('You do not have permission to reopen this poll.')
+        },
+        tags=['Polls Management']
+    )
+    @action(detail=True, methods=['post'], permission_classes=[IsPollCreatorOrReadOnly])
+    def reopen(self, request, pk=None):
+        """Reopen a closed poll (reactivate voting)."""
+        poll = self.get_object()
+        if not request.user.is_authenticated or poll.created_by != request.user:
+            return Response({'detail': 'You do not have permission to reopen this poll.'}, status=status.HTTP_403_FORBIDDEN)
+        if poll.is_active:
+            return Response({'detail': 'Poll is already open.'}, status=status.HTTP_400_BAD_REQUEST)
+        poll.is_active = True
+        poll.save()
+        return Response({'detail': 'Poll reopened successfully.'}, status=status.HTTP_200_OK)
+
 
 class OptionViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for managing poll options (choices).
-    - List, create, update, and delete options for polls.
-    - Only authenticated users can create, update, or delete options.
-    - Anyone can view options.
+    Poll Options
+    
+    Manage poll options (choices). Authentication required for creating/modifying options.
     """
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
@@ -294,11 +208,32 @@ class OptionViewSet(viewsets.ModelViewSet):
 
 class VoteViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for managing authenticated user votes.
-    - List, create, update, and delete votes for authenticated users.
-    - Only authenticated users can create, update, or delete votes.
-    - Anyone can view votes (if allowed by permissions).
+    Authenticated Votes
+    
+    Manage votes from authenticated users.
     """
     queryset = Vote.objects.all()
     serializer_class = VoteSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class GuestVoteViewSet(viewsets.ModelViewSet):
+    """
+    Guest Votes
+
+    Manage votes from unauthenticated users.
+    """
+    queryset = GuestVote.objects.select_related('poll', 'selected_option')
+    serializer_class = GuestVoteSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class PollAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Poll Analytics
+
+    Track poll view statistics and analytics.
+    """
+    queryset = PollView.objects.select_related('poll', 'user')
+    serializer_class = PollViewSerializer
+    permission_classes = [permissions.AllowAny]

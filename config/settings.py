@@ -177,4 +177,14 @@ SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
     'LOGIN_URL': '/api/token/',
     'LOGOUT_URL': '/admin/logout/',
+    'TAGS_SORTER': 'custom',
+    'TAGS': [
+        {'name': 'Auth', 'description': 'Authentication and registration'},
+        {'name': 'Profile', 'description': 'User profile management'},
+        {'name': 'Polls Management', 'description': 'Create, update, delete, and view polls'},
+        {'name': 'Options', 'description': 'Manage poll options'},
+        {'name': 'Votes', 'description': 'Authenticated user votes'},
+        {'name': 'Guest Votes', 'description': 'Guest voting endpoints'},
+        {'name': 'Poll Analytics', 'description': 'Poll view analytics'},
+    ],
 }

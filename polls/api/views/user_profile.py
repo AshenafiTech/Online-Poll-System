@@ -18,7 +18,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     @swagger_auto_schema(
         operation_summary="Get user profile",
         operation_description="Retrieve the authenticated user's profile information.",
-        tags=["Users"]
+        tags=["Profile"]
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -26,7 +26,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     @swagger_auto_schema(
         operation_summary="Update user profile",
         operation_description="Update the authenticated user's profile information.",
-        tags=["Users"]
+        tags=["Profile"]
     )
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)

@@ -9,8 +9,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-# Custom schema views for JWT endpoints
-
 
 class TokenObtainPairViewPatched(TokenObtainPairView):
     @swagger_auto_schema(
@@ -67,10 +65,10 @@ class TokenRefreshViewPatched(TokenRefreshView):
 
 router = DefaultRouter()
 router.register(r'polls', PollViewSet, basename='poll')
-router.register(r'options', OptionViewSet)
-router.register(r'votes', VoteViewSet)
-router.register(r'guest-votes', GuestVoteViewSet)
-router.register(r'pollanalytics', PollAnalyticsViewSet)
+router.register(r'options', OptionViewSet, basename='option')
+router.register(r'votes', VoteViewSet, basename='vote')
+router.register(r'guest-votes', GuestVoteViewSet, basename='guestvote')
+router.register(r'poll-analytics', PollAnalyticsViewSet, basename='pollanalytics')
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-register'),
@@ -78,4 +76,21 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshViewPatched.as_view(), name='token_refresh'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('', include(router.urls)),
+]
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Online Poll System API",
+        default_version='v1',
+        description="A comprehensive polling system API",
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+    patterns=urlpatterns,
+)
+
+urlpatterns += [
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
